@@ -24,16 +24,17 @@ export default function Login() {
     const { data, error } = await supabase.auth.signUp({ email, password })
     if (error) { setError(error.message); setLoading(false); return }
     if (data.user) {
-      await supabase.from('profiles').insert({ id: data.user.id, company_name: companyName, owner_name: ownerName, email })
-      await supabase.from('systems').insert([
-        { profile_id: data.user.id, tier: 'good', name: 'Good — 14 SEER2', description: 'Standard efficiency unit, 1-year parts & labor warranty', price: 5800, warranty: '1 year', features: ['Like-for-like replacement', '1-year warranty', 'Same-day install available'] },
-        { profile_id: data.user.id, tier: 'better', name: 'Better — 16 SEER2', description: 'High efficiency unit, 5-year parts & labor warranty', price: 7400, warranty: '5 years', features: ['Lower monthly energy bills', '5-year warranty', 'Free first-year tune-up'], popular: true },
-        { profile_id: data.user.id, tier: 'best', name: 'Best — 18 SEER2', description: 'Premium efficiency unit, 10-year warranty + maintenance plan', price: 9200, warranty: '10 years', features: ['Maximum efficiency', '10-year warranty', 'Annual maintenance included', 'Priority service calls'] },
+      const uid = data.user.id
+      await supabase.from('profiles').upsert({ id: uid, company_name: companyName, owner_name: ownerName, email })
+      await supabase.from('systems').upsert([
+        { profile_id: uid, tier: 'good', name: 'Good — 14 SEER2', description: 'Standard efficiency unit, 1-year parts & labor warranty', price: 5800, warranty: '1 year', features: ['Like-for-like replacement', '1-year warranty', 'Same-day install available'], popular: false },
+        { profile_id: uid, tier: 'better', name: 'Better — 16 SEER2', description: 'High efficiency unit, 5-year parts & labor warranty', price: 7400, warranty: '5 years', features: ['Lower monthly energy bills', '5-year warranty', 'Free first-year tune-up'], popular: true },
+        { profile_id: uid, tier: 'best', name: 'Best — 18 SEER2', description: 'Premium efficiency unit, 10-year warranty + maintenance plan', price: 9200, warranty: '10 years', features: ['Maximum efficiency', '10-year warranty', 'Annual maintenance included', 'Priority service calls'], popular: false },
       ])
-      await supabase.from('addons').insert([
-        { profile_id: data.user.id, name: 'UV Air Purifier', description: 'Indoor air quality upgrade', price: 650 },
-        { profile_id: data.user.id, name: 'Smart Thermostat', description: 'Ecobee or Nest', price: 280 },
-        { profile_id: data.user.id, name: 'Maintenance Plan', description: 'Annual, 2 visits/yr', price: 199 },
+      await supabase.from('addons').upsert([
+        { profile_id: uid, name: 'UV Air Purifier', description: 'Indoor air quality upgrade', price: 650 },
+        { profile_id: uid, name: 'Smart Thermostat', description: 'Ecobee or Nest', price: 280 },
+        { profile_id: uid, name: 'Maintenance Plan', description: 'Annual, 2 visits/yr', price: 199 },
       ])
     }
     router.push('/dashboard')
