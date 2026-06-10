@@ -70,18 +70,18 @@ export default function Dashboard() {
               <div style={{ fontSize: 11, color: '#888' }}>Tune-up or plan</div>
             </div>
           </Link>
-          <Link href="/call/new" style={{ textDecoration: 'none' }}>
-            <div className="option-card">
-              <div style={{ fontSize: 24, marginBottom: 6 }}>✨</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>Add-on sale</div>
-              <div style={{ fontSize: 11, color: '#888' }}>IAQ, UV, etc.</div>
-            </div>
-          </Link>
           <Link href="/admin" style={{ textDecoration: 'none' }}>
             <div className="option-card">
               <div style={{ fontSize: 24, marginBottom: 6 }}>⚙️</div>
               <div style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>Admin</div>
               <div style={{ fontSize: 11, color: '#888' }}>Pricing setup</div>
+            </div>
+          </Link>
+          <Link href="/billing" style={{ textDecoration: 'none' }}>
+            <div className="option-card">
+              <div style={{ fontSize: 24, marginBottom: 6 }}>💳</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>Billing</div>
+              <div style={{ fontSize: 11, color: '#888' }}>Manage subscription</div>
             </div>
           </Link>
         </div>
@@ -102,4 +102,3 @@ export default function Dashboard() {
     </div>
   )
 }
-
