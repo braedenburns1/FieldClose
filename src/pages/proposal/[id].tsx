@@ -12,6 +12,8 @@ export default function ProposalDetail() {
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
+  const [emailInput, setEmailInput] = useState('')
+  const [savingEmail, setSavingEmail] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -31,6 +33,27 @@ export default function ProposalDetail() {
     }
     load()
   }, [id])
+
+  async function saveEmail() {
+    if (!emailInput) return
+    setSavingEmail(true)
+    await supabase.from('proposals').update({ customer_email: emailInput }).eq('id', proposal.id)
+    setProposal((p: any) => ({ ...p, customer_email: emailInput }))
+    setEmailInput('')
+    setSavingEmail(false)
+  }
+
+  async function sendEmail() {
+    setSending(true)
+    await fetch('/api/send-proposal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ proposalId: proposal.id })
+    })
+    setProposal((p: any) => ({ ...p, status: 'sent' }))
+    setSending(false)
+    setSent(true)
+  }
 
   async function markClosed() {
     await supabase.from('proposals').update({ status: 'closed' }).eq('id', proposal.id)
@@ -56,6 +79,7 @@ export default function ProposalDetail() {
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0' }}><span style={{ fontSize: 13, color: '#888' }}>Recommendation</span><span style={{ fontSize: 13, fontWeight: 600, textTransform: 'capitalize' }}>{proposal.recommendation}</span></div>
           {proposal.notes && <div style={{ padding: '8px 0 0', borderTop: '1px solid #f5f5f5', marginTop: 4 }}><span style={{ fontSize: 12, color: '#888' }}>Notes: </span><span style={{ fontSize: 13 }}>{proposal.notes}</span></div>}
         </div>
+
         <div className="section-title">selected option</div>
         <div className="card">
           {system && <>
@@ -66,6 +90,7 @@ export default function ProposalDetail() {
           {addons.map(a => <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderTop: '1px solid #f5f5f5', marginTop: 8 }}><span style={{ fontSize: 13 }}>{a.name}</span><span style={{ fontSize: 13, fontWeight: 600 }}>+${a.price.toLocaleString()}</span></div>)}
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0 0', borderTop: '2px solid #f0f0f0', marginTop: 8 }}><span style={{ fontSize: 15, fontWeight: 700 }}>Total</span><span style={{ fontSize: 18, fontWeight: 700, color: 'var(--orange)' }}>${proposal.total_price?.toLocaleString()}</span></div>
         </div>
+
         {proposal.signature_data && <>
           <div className="section-title">signature</div>
           <div className="card" style={{ textAlign: 'center' }}>
@@ -73,9 +98,32 @@ export default function ProposalDetail() {
             <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>Signed by {proposal.customer_name}</div>
           </div>
         </>}
+
         <div className="section-title">actions</div>
-        {proposal.status !== 'closed' && <button className="btn-primary" onClick={markClosed}>Mark as closed / won</button>}
-        {proposal.status === 'closed' && <div style={{ background: '#d1e7dd', borderRadius: 10, padding: 14, textAlign: 'center', color: '#0a3622', fontWeight: 600, fontSize: 15 }}>✓ Job closed</div>}
+
+        {!proposal.customer_email && (
+          <div className="card" style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 13, color: '#888', marginBottom: 8 }}>Add customer email to send proposal</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input className="input" type="email" placeholder="customer@email.com" value={emailInput} onChange={e => setEmailInput(e.target.value)} />
+              <button disabled={savingEmail} onClick={saveEmail} style={{ padding: '9px 14px', background: 'var(--orange)', color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}>{savingEmail ? '...' : 'Save'}</button>
+            </div>
+          </div>
+        )}
+
+        {proposal.customer_email && proposal.status !== 'closed' && (
+          <button className="btn-primary" style={{ marginBottom: 8 }} disabled={sending || sent} onClick={sendEmail}>
+            {sent ? '✓ Proposal sent!' : sending ? 'Sending...' : `Email proposal to ${proposal.customer_email}`}
+          </button>
+        )}
+
+        {proposal.status !== 'closed' && (
+          <button className="btn-secondary" onClick={markClosed}>Mark as closed / won</button>
+        )}
+
+        {proposal.status === 'closed' && (
+          <div style={{ background: '#d1e7dd', borderRadius: 10, padding: 14, textAlign: 'center', color: '#0a3622', fontWeight: 600, fontSize: 15 }}>✓ Job closed</div>
+        )}
       </div>
       <div style={{ padding: '0 20px 20px' }}>
         <Link href="/dashboard" style={{ fontSize: 14, color: '#888', textDecoration: 'none' }}>← back to dashboard</Link>
