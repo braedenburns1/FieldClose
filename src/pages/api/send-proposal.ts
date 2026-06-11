@@ -4,7 +4,7 @@ import { Resend } from 'resend'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -86,8 +86,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
     await supabase.from('proposals').update({ status: 'sent' }).eq('id', proposalId)
     res.status(200).json({ success: true })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Email error:', error)
-    res.status(500).json({ error: 'Failed to send email' })
+    res.status(500).json({ error: error.message || 'Failed to send email' })
   }
 }
