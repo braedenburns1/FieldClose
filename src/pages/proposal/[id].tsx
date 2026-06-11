@@ -45,14 +45,23 @@ export default function ProposalDetail() {
 
   async function sendEmail() {
     setSending(true)
-    await fetch('/api/send-proposal', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ proposalId: proposal.id })
-    })
-    setProposal((p: any) => ({ ...p, status: 'sent' }))
+    try {
+      const response = await fetch('/api/send-proposal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ proposalId: proposal.id })
+      })
+      const data = await response.json()
+      if (response.ok) {
+        setProposal((p: any) => ({ ...p, status: 'sent' }))
+        setSent(true)
+      } else {
+        alert('Error sending email: ' + data.error)
+      }
+    } catch (err) {
+      alert('Failed to send email. Please try again.')
+    }
     setSending(false)
-    setSent(true)
   }
 
   async function markClosed() {
