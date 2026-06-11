@@ -46,9 +46,12 @@ export default function ProposalDetail() {
   async function sendEmail() {
     setSending(true)
     try {
-      const response = await fetch('/api/send-proposal', {
+      const response = await fetch('https://vspiibgyvydsqxvnlxyj.supabase.co/functions/v1/send-proposal', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzcGlpYmd5dnlkc3F4dm5seHlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDg2NTUsImV4cCI6MjA5NjUyNDY1NX0.uYTB4HWN6GZV9bqH_gXEUFDlU8-2BoZMbdp-Q7uH2fI`
+        },
         body: JSON.stringify({ proposalId: proposal.id })
       })
       const data = await response.json()
@@ -56,7 +59,7 @@ export default function ProposalDetail() {
         setProposal((p: any) => ({ ...p, status: 'sent' }))
         setSent(true)
       } else {
-        alert('Error sending email: ' + data.error)
+        alert('Error sending email: ' + (data.error || 'Unknown error'))
       }
     } catch (err) {
       alert('Failed to send email. Please try again.')
