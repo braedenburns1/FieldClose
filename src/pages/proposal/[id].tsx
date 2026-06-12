@@ -86,6 +86,13 @@ export default function ProposalDetail() {
         </div>
       </div>
       <div className="content">
+        {proposal.photo_data && <>
+          <div className="section-title">what we found</div>
+          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <img src={proposal.photo_data} alt="Unit photo" style={{ width: '100%', display: 'block' }} />
+          </div>
+        </>}
+
         <div className="section-title">job details</div>
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f5f5f5' }}><span style={{ fontSize: 13, color: '#888' }}>System age</span><span style={{ fontSize: 13 }}>{proposal.system_age}</span></div>
