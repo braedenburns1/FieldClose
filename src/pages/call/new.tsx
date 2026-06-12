@@ -31,7 +31,9 @@ export default function NewCall() {
   const [addons, setAddons] = useState<any[]>([])
   const [selectedAddons, setSelectedAddons] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
+  const [photoData, setPhotoData] = useState('')
   const sigRef = useRef<SignatureCanvas>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [form, setForm] = useState({
     customer_name: '', customer_email: '', address: '',
@@ -74,6 +76,27 @@ export default function NewCall() {
     setSelectedAddons(prev => prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id])
   }
 
+  function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const maxWidth = 800
+        const scale = Math.min(1, maxWidth / img.width)
+        canvas.width = img.width * scale
+        canvas.height = img.height * scale
+        const ctx = canvas.getContext('2d')
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height)
+        setPhotoData(canvas.toDataURL('image/jpeg', 0.7))
+      }
+      img.src = reader.result as string
+    }
+    reader.readAsDataURL(file)
+  }
+
   function getTotal() {
     const sys = systems.find(s => s.id === form.selected_system_id)
     const sysPrice = sys?.price || 0
@@ -100,6 +123,7 @@ export default function NewCall() {
       total_price: getTotal(),
       status,
       signature_data: sigData || '',
+      photo_data: photoData || '',
       notes: form.notes,
     }).select().single()
     setSaving(false)
@@ -134,6 +158,21 @@ export default function NewCall() {
             <div style={{ marginBottom: 12 }}><label className="label">System age *</label><select className="input" value={form.system_age} onChange={e => set('system_age', e.target.value)}><option value="">Select age</option>{AGES.map(a => <option key={a}>{a}</option>)}</select></div>
             <div style={{ marginBottom: 12 }}><label className="label">What did you find? *</label><select className="input" value={form.diagnosis} onChange={e => set('diagnosis', e.target.value)}><option value="">Select diagnosis</option>{DIAGNOSES.map(d => <option key={d}>{d}</option>)}</select></div>
             <div style={{ marginBottom: 12 }}><label className="label">Tech notes</label><textarea className="input" style={{ height: 72, resize: 'none' }} value={form.notes} onChange={e => set('notes', e.target.value)} placeholder="What you found, keep it simple..." /></div>
+            <div style={{ marginBottom: 12 }}>
+              <label className="label">Photo of unit / issue (optional)</label>
+              <input ref={fileInputRef} type="file" accept="image/*" capture="environment" onChange={handlePhotoSelect} style={{ display: 'none' }} />
+              {photoData ? (
+                <div style={{ position: 'relative' }}>
+                  <img src={photoData} alt="Unit photo" style={{ width: '100%', borderRadius: 10, border: '1px solid #ddd' }} />
+                  <button onClick={() => { setPhotoData(''); if (fileInputRef.current) fileInputRef.current.value = '' }} style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', borderRadius: 6, padding: '6px 10px', fontSize: 12, cursor: 'pointer' }}>Remove</button>
+                </div>
+              ) : (
+                <button onClick={() => fileInputRef.current?.click()} style={{ width: '100%', padding: '14px', border: '2px dashed #ddd', borderRadius: 10, background: '#fafafa', color: '#888', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  📷 Take a photo of the unit or issue
+                </button>
+              )}
+              <div style={{ fontSize: 11, color: '#aaa', marginTop: 4 }}>Helps the customer see exactly what you found</div>
+            </div>
           </div>
           <div className="footer-bar">
             <button className="btn-primary" disabled={!form.customer_name || !form.system_age || !form.diagnosis} onClick={() => setStep(2)}>Next — repair vs. replace →</button>
