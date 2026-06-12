@@ -46,55 +46,22 @@ export default function ProposalDetail() {
   async function sendEmail() {
     setSending(true)
     try {
-      const { data: prof } = await supabase.from('profiles').select('*').eq('id', proposal.profile_id).single()
-      const { data: sys } = await supabase.from('systems').select('*').eq('id', proposal.selected_system_id).single()
-
-      const response = await fetch('https://api.resend.com/emails', {
+      const response = await fetch('https://vspiibgyvydsqxvnlxyj.supabase.co/functions/v1/hyper-action', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer re_WXMYBc5k_75Xa86FUzVWyL7tftYFNEHr`
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzcGlpYmd5dnlkc3F4dm5seHlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDg2NTUsImV4cCI6MjA5NjUyNDY1NX0.uYTB4HWN6GZV9bqH_gXEUFDlU8-2BoZMbdp-Q7uH2fI`
         },
-        body: JSON.stringify({
-          from: 'FieldClose <proposals@fieldclose.net>',
-          to: proposal.customer_email,
-          subject: `Your HVAC proposal from ${prof?.company_name || 'your technician'} — $${proposal.total_price?.toLocaleString()}`,
-          html: `
-            <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 16px;">
-              <div style="background:#D85A30;border-radius:12px 12px 0 0;padding:24px 28px;">
-                <div style="font-size:22px;font-weight:800;color:white;">⚡ FieldClose</div>
-                <div style="font-size:14px;color:rgba(255,255,255,0.8);margin-top:4px;">${prof?.company_name || 'Your HVAC Company'}</div>
-              </div>
-              <div style="background:white;border-radius:0 0 12px 12px;padding:28px;">
-                <h2 style="font-size:20px;font-weight:700;color:#111;margin:0 0 8px;">Your HVAC Proposal</h2>
-                <p style="font-size:14px;color:#666;line-height:1.6;margin:0 0 24px;">Hi ${proposal.customer_name}, thank you for having us out today. Here is your proposal from ${prof?.company_name || 'our team'}.</p>
-                <div style="background:#f9f9f7;border-radius:10px;padding:20px;margin-bottom:24px;">
-                  <div style="font-size:17px;font-weight:700;color:#111;margin-bottom:4px;">${sys?.name || 'System'}</div>
-                  <div style="font-size:13px;color:#888;margin-bottom:16px;">${sys?.description || ''}</div>
-                  <div style="display:flex;justify-content:space-between;padding-top:12px;border-top:1px solid #eee;">
-                    <span style="font-size:16px;font-weight:700;color:#111;">Total</span>
-                    <span style="font-size:20px;font-weight:800;color:#D85A30;">$${proposal.total_price?.toLocaleString()}</span>
-                  </div>
-                </div>
-                <div style="border-top:1px solid #eee;padding-top:20px;font-size:13px;color:#888;line-height:1.6;">
-                  Questions? Reply to this email or contact us directly.<br><br>
-                  <strong style="color:#111;">${prof?.owner_name || 'The Team'}</strong><br>
-                  ${prof?.company_name || ''}
-                </div>
-              </div>
-              <div style="text-align:center;padding:20px;font-size:12px;color:#aaa;">Powered by ⚡ FieldClose</div>
-            </div>
-          `
-        })
+        body: JSON.stringify({ proposalId: proposal.id })
       })
 
-      if (response.ok) {
-        await supabase.from('proposals').update({ status: 'sent' }).eq('id', proposal.id)
+      const data = await response.json()
+
+      if (response.ok && data.success) {
         setProposal((p: any) => ({ ...p, status: 'sent' }))
         setSent(true)
       } else {
-        const err = await response.json()
-        alert('Error: ' + JSON.stringify(err))
+        alert('Error sending email: ' + JSON.stringify(data))
       }
     } catch (err) {
       alert('Failed to send email. Please try again.')
